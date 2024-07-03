@@ -1,4 +1,7 @@
-﻿namespace People;
+﻿using People.Models;
+using SQLite;
+
+namespace People;
 
 public class PersonRepository
 {
@@ -7,10 +10,17 @@ public class PersonRepository
     public string StatusMessage { get; set; }
 
     // TODO: Add variable for the SQLite connection
-
+    private SQLiteConnection connJDS;
     private void Init()
     {
         // TODO: Add code to initialize the repository         
+        if(connJDS != null)
+        {
+            return;
+        }
+
+        connJDS = new SQLiteConnection( _dbPath );
+        connJDS.CreateTable<Person>();
     }
 
     public PersonRepository(string dbPath)
@@ -24,6 +34,14 @@ public class PersonRepository
         try
         {
             // TODO: Call Init()
+            Init();
+
+            // basic validation to ensure a name was entered
+            if (string.IsNullOrEmpty(name))
+                throw new Exception("Valid name required");
+
+            // enter this line
+            result = connJDS.Insert(new Person { NameJDS = name });
 
             // basic validation to ensure a name was entered
             if (string.IsNullOrEmpty(name))
@@ -46,7 +64,8 @@ public class PersonRepository
         // TODO: Init then retrieve a list of Person objects from the database into a list
         try
         {
-            
+            Init();
+            return connJDS.Table<Person>().ToList();
         }
         catch (Exception ex)
         {
